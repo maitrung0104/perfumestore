@@ -1,5 +1,6 @@
 package com.example.fragrance.model;
 
+import com.example.fragrance.ENUM.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,7 +20,9 @@ public class User {
     private String username;
     private String email;
     private String password;
-    private String role; // CUSTOMER, ADMIN
+    @Enumerated(EnumType.STRING) // Đảm bảo enum được lưu dưới dạng chuỗi trong database
+    @Column(nullable = false)
+    private Role role; // CUSTOMER, ADMIN
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Order> orders;
