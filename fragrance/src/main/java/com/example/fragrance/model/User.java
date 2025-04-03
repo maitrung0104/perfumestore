@@ -1,29 +1,58 @@
 package com.example.fragrance.model;
-
-import com.example.fragrance.ENUM.Role;
 import jakarta.persistence.*;
-import lombok.*;
 
-import java.util.List;
-
+import java.util.Date;
+    
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String username;
-    private String email;
-    private String password;
-    @Enumerated(EnumType.STRING) // Đảm bảo enum được lưu dưới dạng chuỗi trong database
-    @Column(nullable = false)
-    private Role role; // CUSTOMER, ADMIN
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Order> orders;
+    @Column(nullable = false)
+    private String password;
+
+    @Column(name = "created_at")
+    private Date createdAt;
+
+    // Constructor, getters và setters
+    public User() {
+        this.createdAt = new Date();
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductController {
     @Autowired
-    ProductService productService;
+    private ProductService productService;
     @GetMapping
     public List<Product> getAllProducts() {
         return productService.getAllProducts();

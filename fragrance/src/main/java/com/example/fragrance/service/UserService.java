@@ -9,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
     @Autowired
     UserRepository userRepository;
@@ -20,8 +19,15 @@ public class UserService {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new RuntimeException("Username already exists!");
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // Mã hóa mật khẩu
-        user.setRole(Role.USER); // Mặc định user mới là USER
+
+        // Mã hóa mật khẩu trước khi lưu vào DB
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Đặt role mặc định nếu chưa có
+        if (user.getRole() == null) {
+            user.setRole(Role.USER);
+        }
+
         return userRepository.save(user);
     }
 
