@@ -1,25 +1,65 @@
 package com.example.fragrance.controller;
 
+import com.example.fragrance.dto.LoginRequest;
+import com.example.fragrance.dto.MessageResponse;
+import com.example.fragrance.dto.SignupRequest;
 import com.example.fragrance.model.User;
 import com.example.fragrance.service.UserService;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users")
-@RequiredArgsConstructor
+@RequestMapping("/api/auth")
 public class UserController {
-    private  UserService userService;
+    @Autowired
+    private UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) {
-        return ResponseEntity.ok(userService.registerUser(user));
+    @PostMapping("/signup")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
+        // Kiểm tra xem username đã tồn tại chưa
+        if (userService.existsByUsername(signupRequest.getUsername())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: Username đã được sử dụng!"));
+        }
+
+        // Kiểm tra mật khẩu và xác nhận mật khẩu có khớp không
+        if (!signupRequest.getPassword().equals(signupRequest.getConfirmPassword())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: Mật khẩu và xác nhận mật khẩu không khớp!"));
+        }
+
+        // Tạo user mới
+        User user = new User();
+        user.setUsername(signupRequest.getUsername());
+        user.setPassword(signupRequest.getPassword());
+
+        userService.saveUser(user);
+
+        return ResponseEntity.ok(new MessageResponse("Đăng ký thành công!"));
     }
 
-    @GetMapping("/{username}")
-    public ResponseEntity<User> getUser(@PathVariable String username) {
-        return ResponseEntity.ok(userService.getUserByUsername(username));
+    @PostMapping("/login")
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest, HttpSession session) {
+        if (userService.authenticateUser(loginRequest.getUsername(), loginRequest.getPassword())) {
+            // Lưu thông tin đăng nhập vào session
+            session.setAttribute("username", loginRequest.getUsername());
+            return ResponseEntity.ok(new MessageResponse("Đăng nhập thành công!"));
+        } else {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: Username hoặc mật khẩu không đúng!"));
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok(new MessageResponse("Đăng xuất thành công!"));
     }
 }
-

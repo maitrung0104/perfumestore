@@ -1,9 +1,6 @@
 package com.example.fragrance.service;
-
-import com.example.fragrance.ENUM.Role;
 import com.example.fragrance.model.User;
 import com.example.fragrance.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,29 +8,27 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
+
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
-    public User registerUser(User user) {
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists!");
-        }
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
 
-        // Mã hóa mật khẩu trước khi lưu vào DB
+    public User saveUser(User user) {
+        // Mã hóa mật khẩu trước khi lưu
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        // Đặt role mặc định nếu chưa có
-        if (user.getRole() == null) {
-            user.setRole(Role.USER);
-        }
-
         return userRepository.save(user);
     }
 
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public boolean authenticateUser(String username, String password) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            return false;
+        }
+        return passwordEncoder.matches(password, user.getPassword());
     }
 }
 
